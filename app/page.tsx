@@ -1,17 +1,17 @@
-const days = [
-  { day:'DAY 01', title:'腿部', color:'lime', focus:'下肢力量 · 臀腿完整發展', current:['掛片式臀推機','俯臥後勾腿訓練器','坐姿腿伸展機','腿部外展／內收機'], improved:[['腿推機／哈克深蹲','4 × 6–12','new'],['掛片式臀推機','3–4 × 8–12','keep'],['羅馬尼亞硬舉','3 × 8–12','new'],['俯臥後勾腿','3 × 10–15','keep'],['坐姿腿伸展','3 × 10–15','keep'],['髖外展','2–3 × 15–20','adjust'],['小腿提踵','4 × 8–15','new']], reasons:[['補上主要腿部動作','目前多為單關節器械；腿推或哈克深蹲能同時訓練股四頭、臀部與核心穩定。'],['補足髖鉸鏈','羅馬尼亞硬舉能加強腿後側與臀部，讓前後腿發展更平衡。'],['小腿不能漏掉','增加下肢整體比例，也補足目前菜單沒有直接刺激的部位。']] },
-  { day:'DAY 02', title:'胸 · 手臂 · 腹', color:'orange', focus:'上胸厚度 · 手臂 · 核心', current:['器械臥推','上斜胸推機','坐姿二頭彎舉機','背向低位繩索過頭伸展','直桿／V桿滑輪下壓','BOSU 舉腿'], improved:[['上斜胸推機','3–4 × 6–12','adjust'],['器械臥推','3–4 × 8–12','keep'],['蝴蝶機夾胸／滑輪飛鳥','3 × 10–15','new'],['坐姿二頭彎舉機','3 × 8–15','keep'],['過頭三頭伸展','3 × 10–15','keep'],['V桿／直桿下壓','2–3 × 10–15','keep'],['BOSU 舉腿','3 × 8–15','keep'],['滑輪跪姿捲腹','3 × 10–15','new'],['側棒式／Pallof Press','每側 2–3 組','new']], reasons:[['上胸優先','把上斜胸推放第一個，精神與力量最好時先補強目標外型需要的上胸厚度。'],['增加胸肌內收','兩個胸推都是推的方向；夾胸能補上手臂向中線靠攏的功能。'],['核心更完整','舉腿偏下腹與髖屈；加入捲腹和抗旋轉，才能涵蓋脊椎屈曲與軀幹穩定。']] },
-  { day:'DAY 03', title:'有氧／恢復', color:'blue', focus:'心肺 · 恢復 · 體脂管理', current:['有氧跑步'], improved:[['輕鬆跑／上坡走／飛輪','20–35 分鐘','adjust'],['活動度與伸展','5–10 分鐘','new']], reasons:[['保留腿部恢復','維持能簡短說話的強度；若腿仍明顯痠痛，改走路、飛輪或完全休息。'],['避免互相干擾','腿日後立刻做衝刺、間歇或長距離，可能降低腿部恢復與下一次訓練表現。']] },
-  { day:'DAY 04', title:'背 · 肩', color:'violet', focus:'倒三角 · 肩寬 · 背部厚度', current:['面拉','引體向上','坐姿划船','上斜靠椅側平舉','肩推','滑輪後三角飛鳥'], improved:[['引體向上','4 × 5–10','adjust'],['坐姿划船','3–4 × 8–12','keep'],['單臂高位下拉／高位下拉','3 × 8–15','new'],['肩推','3 × 6–12','adjust'],['上斜靠椅側平舉','4 × 10–20','keep'],['滑輪後三角飛鳥','3 × 12–20','keep'],['面拉','2–3 × 12–20','adjust']], reasons:[['大動作先做','面拉改到最後；先用體力最充足的狀態完成引體、划船與肩推。'],['增加背闊肌訓練量','多一個下拉角度，手肘朝髖部拉，有助於建立目標需要的倒三角。'],['保留兩種後肩刺激','後三角飛鳥負責增肌；面拉則兼顧肩胛控制與肩外旋，輕重量完成即可。']] },
-];
+import TrainingCalendar from './training-calendar';
 
-function ExerciseList({items}:{items:string[]}) { return <ul className="plain-list">{items.map((item,i)=><li key={item}><span>{String(i+1).padStart(2,'0')}</span>{item}</li>)}</ul>; }
-
-export default function Home(){return <main>
-  <nav className="topbar"><a className="brand" href="#top"><span>R</span> TRAINING MAP</a><div className="navlinks"><a href="#overview">總覽</a><a href="#plan">改善菜單</a><a href="#rules">執行原則</a></div></nav>
-  <header className="hero" id="top"><div className="hero-grid"/><div className="eyebrow">181 CM · 76 KG · 4-DAY SPLIT</div><h1>從現在的訓練<br/><em>走向更寬、更厚、更清晰</em></h1><p>保留你已經做對的動作，補上缺口、調整順序。目標不是塞入更多動作，而是讓每一組都有明確用途。</p><div className="hero-stats"><div><strong>4</strong><span>天循環</span></div><div><strong>18–22</strong><span>每次有效組</span></div><div><strong>1–3</strong><span>保留次數 RIR</span></div></div></header>
-  <section className="section overview" id="overview"><div className="section-heading"><span>01 / ASSESSMENT</span><h2>你現在最值得改善的地方</h2></div><div className="priority-grid"><article><b>01</b><h3>肩寬與倒三角</h3><p>側三角、後三角與背闊肌是最直接改變上半身輪廓的部位。</p></article><article><b>02</b><h3>上胸厚度</h3><p>將上斜胸推提前，搭配夾胸，讓胸部不只會推，也能完整收縮。</p></article><article><b>03</b><h3>腿部完整性</h3><p>你的腿已有基礎，但目前缺少複合蹲類、髖鉸鏈與小腿訓練。</p></article><article><b>04</b><h3>核心功能</h3><p>BOSU 舉腿保留，再補捲腹與抗旋轉，核心刺激才完整。</p></article></div></section>
-  <section className="section" id="plan"><div className="section-heading"><span>02 / YOUR 4-DAY PLAN</span><h2>目前安排 × 改善版本</h2><p>綠點保留｜黃點調整順序或份量｜白點新增</p></div><div className="day-stack">{days.map(d=><article className={`day-card ${d.color}`} key={d.day}><div className="day-head"><div><span>{d.day}</span><h3>{d.title}</h3></div><p>{d.focus}</p></div><div className="compare-grid"><div className="current-panel"><h4>你目前在做</h4><ExerciseList items={d.current}/></div><div className="arrow" aria-hidden="true">→</div><div className="improved-panel"><h4>建議改善版</h4><ul className="plan-list">{d.improved.map(([name,dose,status])=><li key={name}><i className={status}/><span>{name}</span><strong>{dose}</strong></li>)}</ul></div></div><div className="reason-grid">{d.reasons.map(([title,copy])=><div key={title}><span>WHY</span><h5>{title}</h5><p>{copy}</p></div>)}</div></article>)}</div></section>
-  <section className="section rules" id="rules"><div className="section-heading"><span>03 / EXECUTION</span><h2>讓菜單真正有效的 4 條規則</h2></div><div className="rule-list"><div><b>01</b><h3>大動作優先</h3><p>引體、腿推、胸推和肩推排在前面，孤立與保養型動作放後面。</p></div><div><b>02</b><h3>不要每組力竭</h3><p>多數組保留 1–3 下餘力；動作品質比勉強多做一下重要。</p></div><div><b>03</b><h3>記錄漸進</h3><p>姿勢不變時，下週多 1 下或小幅加重。沒有紀錄，就很難確認是否進步。</p></div><div><b>04</b><h3>Day 4 後休息</h3><p>建議「腿 → 推 → 輕有氧 → 拉 → 休息」，不要無休止立刻重啟循環。</p></div></div><aside className="note"><span>你的優先順序</span><strong>肩背輪廓 → 上胸厚度 → 核心清晰</strong><p>目前不需要激烈減重。先在 75–78 kg 附近穩定增肌、每日蛋白質約 120–165 g，再視進度安排溫和減脂。</p></aside></section>
-  <footer><span>PERSONAL TRAINING MAP</span><p>依目前照片與訓練內容整理 · 若有疼痛或舊傷，請先由醫療專業人員評估。</p></footer>
-</main>}
+export default function Home(){
+  return <main className="tool-page">
+    <header className="tool-header">
+      <div><span>RICK · TRAINING LOG</span><h1>訓練計畫</h1></div>
+      <div className="tool-meta"><p>181 cm · 76 kg　｜　腿 → 推 → 有氧 → 拉　｜　更新：2026/08/28</p><a href="./guide/">動作指南 →</a></div>
+    </header>
+    <TrainingCalendar />
+    <section className="section compact-rules">
+      <div><b>加重</b><p>連續兩次完成全部組數上限，姿勢穩定並約保留2下，才使用下一級重量。</p></div>
+      <div><b>維持</b><p>落在目標次數範圍內，但尚未完成全部上限，就維持原重量並先增加次數。</p></div>
+      <div><b>降重</b><p>做不到次數下限或姿勢失控，當天降低5–10%；疼痛時停止該動作。</p></div>
+    </section>
+    <footer className="tool-footer">本地訓練工具 · 重量會因器械品牌、睡眠與當天狀態而調整</footer>
+  </main>;
+}
