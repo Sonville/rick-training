@@ -3,11 +3,10 @@ import SiteNav from './site-nav';
 
 export default function Home(){
   return <main className="tool-page">
-    <SiteNav current="schedule" />
     <header className="tool-header">
       <div><span>RICK · TRAINING LOG</span><h1>訓練計畫</h1></div>
-      <p>181 cm · 76 kg　｜　腿 → 推 → 有氧 → 拉　｜　更新：2026/08/28</p>
     </header>
+    <SiteNav current="schedule" />
     <TrainingCalendar />
     <section className="section compact-rules">
       <div><b>加重</b><p>連續兩次完成全部組數上限，姿勢穩定並約保留2下，才使用下一級重量。</p></div>

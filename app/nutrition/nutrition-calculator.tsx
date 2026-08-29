@@ -55,8 +55,8 @@ export default function NutritionCalculator(){
   }
   function clearSaved(){try{localStorage.removeItem(STORAGE_KEY)}catch{}setRemember(false)}
   return <main className="nutrition-page">
-    <SiteNav current="nutrition" />
     <header className="nutrition-header"><div><span>NUTRITION ESTIMATE</span><h1>每日營養計算</h1><p>先取得合理的起始值，再用 2–3 週的體重趨勢校正。</p></div></header>
+    <SiteNav current="nutrition" />
     <div className="nutrition-layout"><form className="nutrition-form" onSubmit={submit} noValidate>
       <div className="form-heading"><span>01</span><div><h2>基本資料</h2><p>所有計算都在你的裝置上完成。</p></div></div>
       <div className="measure-grid">
