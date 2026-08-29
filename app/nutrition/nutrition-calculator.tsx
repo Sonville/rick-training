@@ -56,7 +56,7 @@ export default function NutritionCalculator(){
     <header className="nutrition-header"><div><h1>每日營養計算</h1></div></header>
     <SiteNav current="nutrition" />
     <div className="nutrition-layout"><form className="nutrition-form" onSubmit={submit} noValidate>
-      <div className="form-heading"><span>01</span><div><h2>基本資料</h2><p>所有計算都在你的裝置上完成。</p></div></div>
+      <div className="form-heading"><span>01</span><div><h2>基本資料</h2></div></div>
       <div className="measure-grid">
         <label><span>身高</span><div><input aria-label="身高" inputMode="decimal" type="number" min="120" max="230" value={form.height} onChange={e=>update('height',e.target.value)} placeholder="181"/><i>cm</i></div></label>
         <label><span>體重</span><div><input aria-label="體重" inputMode="decimal" type="number" min="35" max="250" step="0.1" value={form.weight} onChange={e=>update('weight',e.target.value)} placeholder="76"/><i>kg</i></div></label>
@@ -73,7 +73,6 @@ export default function NutritionCalculator(){
       <div className="macro-grid"><article><span>蛋白質</span><strong>{result.protein}<i>g</i></strong><p>{goals[form.goal].protein} g／kg</p></article><article><span>脂肪</span><strong>{result.fat}<i>g</i></strong><p>約 0.8 g／kg，並限制於合理比例</p></article><article><span>碳水</span><strong>{result.carbs}<i>g</i></strong><p>扣除蛋白質與脂肪後的剩餘熱量</p></article></div>
       <dl className="result-facts"><div><dt>維持熱量可能範圍</dt><dd>{result.low.toLocaleString()}–{result.high.toLocaleString()} kcal</dd></div><div><dt>靜息代謝估算</dt><dd>{result.bmr.toLocaleString()} kcal</dd></div><div><dt>三大營養素換算</dt><dd>約 {result.macroCalories.toLocaleString()} kcal</dd></div><div><dt>活動係數</dt><dd>{activities[form.activity].factor} · {activities[form.activity].label}</dd></div></dl>
       <div className="calibration"><b>兩週後這樣調整</b><p>每天在相近條件下量體重，以 7 天平均觀察趨勢。若連續兩週趨勢與目標不符，每次只增加或減少 100–150 kcal；不要因單日體重改動飲食。</p></div>
-    </>:<div className="result-empty"><span>02</span><h2>你的估算結果</h2><p>填完左側資料後，這裡會顯示目標熱量與三大營養素。活動量通常是最大誤差來源，結果應視為起始值。</p></div>}</section></div>
-    <footer className="nutrition-footer">此工具僅提供一般估算，不構成醫療、診斷或個人化營養處方。</footer>
+    </>:<div className="result-empty"><span>02</span><h2>你的估算結果</h2></div>}</section></div>
   </main>;
 }
