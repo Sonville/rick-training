@@ -87,6 +87,7 @@ function dayType(index:number):DayKey {
 
 function dateAt(index:number){const d=new Date(2026,7,28,12);d.setDate(d.getDate()+index);return d;}
 function dateText(d:Date){return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}
+function dateKey(d:Date){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function exposureAt(index:number,type:DayKey){let count=0;for(let i=0;i<index;i++)if(dayType(i)===type)count++;return count;}
 function numericProjected(ex:Exercise,exposure:number,dateIndex:number,overrides:Overrides){
   const latest=(overrides[ex.name]||[]).filter(a=>a.dateIndex<=dateIndex).sort((a,b)=>b.dateIndex-a.dateIndex)[0];
@@ -108,9 +109,21 @@ export default function TrainingCalendar(){
   const [editing,setEditing]=useState(false);
   const [draft,setDraft]=useState<Record<string,string>>({});
   const dates=useMemo(()=>Array.from({length:84},(_,i)=>({index:i,date:dateAt(i),type:dayType(i)})),[]);
+  const monthOptions=useMemo(()=>Array.from(new Set(dates.map(({date})=>`${date.getFullYear()}-${date.getMonth()}`))).map(value=>{const [year,month]=value.split('-').map(Number);return {year,month,label:`${month+1} 月`}}),[dates]);
+  const [monthCursor,setMonthCursor]=useState(0);
   const item=dates[selected]; const plan=plans[item.type]; const exposure=exposureAt(selected,item.type);
+  const visibleMonth=monthOptions[monthCursor];
+  const monthCells=useMemo(()=>{
+    const first=new Date(visibleMonth.year,visibleMonth.month,1,12);
+    const count=new Date(visibleMonth.year,visibleMonth.month+1,0,12).getDate();
+    const cells:(Date|null)[]=Array(first.getDay()).fill(null);
+    for(let day=1;day<=count;day++)cells.push(new Date(visibleMonth.year,visibleMonth.month,day,12));
+    while(cells.length%7)cells.push(null);
+    return cells.map(date=>({date,dateIndex:date?dates.findIndex(entry=>dateKey(entry.date)===dateKey(date)):null}));
+  },[dates,visibleMonth]);
   useEffect(()=>{try{const saved=localStorage.getItem('rick-training-overrides');if(saved)setOverrides(JSON.parse(saved));}catch{}},[]);
-  function choose(index:number){setSelected(index);setEditing(false);setDraft({});}
+  function choose(index:number){setSelected(index);setMonthCursor(Math.max(0,monthOptions.findIndex(month=>month.year===dates[index].date.getFullYear()&&month.month===dates[index].date.getMonth())));setEditing(false);setDraft({});}
+  function chooseMonth(index:number){setMonthCursor(index);const firstIndex=dates.findIndex(entry=>entry.date.getFullYear()===monthOptions[index].year&&entry.date.getMonth()===monthOptions[index].month);if(firstIndex>=0&&dateKey(dates[selected].date).slice(0,7)!==`${monthOptions[index].year}-${String(monthOptions[index].month+1).padStart(2,'0')}`)choose(firstIndex);}
   function beginEdit(){const next:Record<string,string>={};for(const ex of plan.exercises)if(!['自體重量','體重'].includes(ex.unit||''))next[ex.name]=String(numericProjected(ex,exposure,selected,overrides));setDraft(next);setEditing(true);}
   function saveEdit(){
     const next:Overrides={...overrides};
@@ -119,10 +132,10 @@ export default function TrainingCalendar(){
   }
   function clearEdits(){setOverrides({});localStorage.removeItem('rick-training-overrides');setEditing(false);setDraft({});}
   return <section className="section calendar-section" id="calendar">
-    <div className="section-heading"><span>2026/08/28 — 2026/11/19</span><h2>12週日程</h2><p>點選日期查看動作、組數、重量與動作提醒。未達加重條件時，維持原重量。</p></div>
+    <div className="section-heading"><span>2026/08/28 — 2026/11/19</span><h2>訓練日曆</h2><p>選擇月份與日期查看動作、組數、重量與動作提醒。未達加重條件時，維持原重量。</p></div>
     <div className="mobile-calendar-head"><div><span>訓練日程</span><strong>{item.date.getFullYear()} 年 {item.date.getMonth()+1} 月</strong></div><p>181 cm　·　76 kg　·　4 日循環</p><button onClick={()=>choose(0)} disabled={selected===0}>今天</button></div>
     <div className="calendar-shell">
-      <div className="calendar-scroll"><div className="weekday-row">{['五','六','日','一','二','三','四'].map(x=><span key={x}>週{x}</span>)}</div><div className="date-grid">{dates.map(({index,date,type})=><button key={index} onClick={()=>choose(index)} className={`${plans[type].color} ${selected===index?'selected':''} ${index===0?'is-today':''}`} aria-pressed={selected===index}><small>{date.getMonth()+1}/{date.getDate()}</small><b>{plans[type].short}</b><i>{index===0?'今天':`W${Math.floor(index/7)+1}`}</i></button>)}</div></div>
+      <div className="calendar-scroll"><div className="calendar-month-nav"><div><span>月曆</span><strong>{visibleMonth.year} 年 {visibleMonth.month+1} 月</strong></div><div className="month-tabs" aria-label="選擇月份">{monthOptions.map((month,index)=><button key={`${month.year}-${month.month}`} className={monthCursor===index?'active':''} onClick={()=>chooseMonth(index)}><b>{month.label}</b><small>{month.year}</small></button>)}</div></div><div className="month-weekday-row">{['日','一','二','三','四','五','六'].map(x=><span key={x}>週{x}</span>)}</div><div className="month-grid">{monthCells.map(({date,dateIndex},cellIndex)=>{if(dateIndex===null||dateIndex<0||date===null)return <span key={cellIndex} className="month-cell range-off"><small>{date?.getDate()||''}</small></span>;const type=dates[dateIndex].type;return <button key={cellIndex} onClick={()=>choose(dateIndex)} className={`${plans[type].color} ${selected===dateIndex?'selected':''} ${dateIndex===0?'is-today':''}`} aria-pressed={selected===dateIndex} aria-label={`${dateText(date)} ${plans[type].label}`}><small>{date.getDate()}</small><b>{plans[type].short}</b><i>{dateIndex===0?'今天':`W${Math.floor(dateIndex/7)+1}`}</i></button>})}</div></div>
       <article className={`daily-detail ${plan.color} ${selected===0?'is-today':''}`}>
         <div className="detail-top"><div><span>{dateText(item.date)} · 星期{['日','一','二','三','四','五','六'][item.date.getDay()]}</span><h3>{plan.label}</h3><p>{item.type==='rest'?'今天不安排重量訓練，散步 20–30 分鐘或完全休息。':`這是本循環第 ${exposure+1} 次 ${plan.short} 日。`}</p></div><div className="day-controls"><button disabled={selected===0} onClick={()=>choose(Math.max(0,selected-1))}>←</button><button disabled={selected===83} onClick={()=>choose(Math.min(83,selected+1))}>→</button></div></div>
         {item.type!=='rest'&&<div className="editor-bar">{editing?<><button className="save" onClick={saveEdit}>儲存並套用未來</button><button onClick={()=>setEditing(false)}>取消</button></>:<button onClick={beginEdit}>編輯當日重量</button>}{Object.keys(overrides).length>0&&<button className="clear" onClick={clearEdits}>清除全部自訂</button>}<span>修改只影響這一天及之後；更早日期不變。</span></div>}
