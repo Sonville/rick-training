@@ -74,7 +74,6 @@ export default function NutritionCalculator(){
       <dl className="result-facts"><div><dt>維持熱量可能範圍</dt><dd>{result.low.toLocaleString()}–{result.high.toLocaleString()} kcal</dd></div><div><dt>靜息代謝估算</dt><dd>{result.bmr.toLocaleString()} kcal</dd></div><div><dt>三大營養素換算</dt><dd>約 {result.macroCalories.toLocaleString()} kcal</dd></div><div><dt>活動係數</dt><dd>{activities[form.activity].factor} · {activities[form.activity].label}</dd></div></dl>
       <div className="calibration"><b>兩週後這樣調整</b><p>每天在相近條件下量體重，以 7 天平均觀察趨勢。若連續兩週趨勢與目標不符，每次只增加或減少 100–150 kcal；不要因單日體重改動飲食。</p></div>
     </>:<div className="result-empty"><span>02</span><h2>你的估算結果</h2><p>填完左側資料後，這裡會顯示目標熱量與三大營養素。活動量通常是最大誤差來源，結果應視為起始值。</p></div>}</section></div>
-    <section className="nutrition-method"><div><b>計算依據</b><p>熱量採 Mifflin–St Jeor 靜息代謝公式與活動係數；蛋白質參考運動族群建議；脂肪與碳水依總熱量分配。公式無法取代實際飲食紀錄與體重趨勢。</p></div><div className="source-links"><a href="https://pubmed.ncbi.nlm.nih.gov/2305711/" target="_blank" rel="noreferrer">Mifflin–St Jeor</a><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153/" target="_blank" rel="noreferrer">ISSN Protein</a><a href="https://www.nationalacademies.org/read/10490" target="_blank" rel="noreferrer">National Academies DRI</a><a href="https://www.niddk.nih.gov/health-information/weight-management/body-weight-planner" target="_blank" rel="noreferrer">NIDDK</a></div></section>
     <footer className="nutrition-footer">此工具僅提供一般估算，不構成醫療、診斷或個人化營養處方。</footer>
   </main>;
 }
