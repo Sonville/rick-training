@@ -4,7 +4,7 @@ export default function Home(){
   return <main className="tool-page">
     <header className="tool-header">
       <div><span>RICK · TRAINING LOG</span><h1>訓練計畫</h1></div>
-      <div className="tool-meta"><p>181 cm · 76 kg　｜　腿 → 推 → 有氧 → 拉　｜　更新：2026/08/28</p><a className="guide-link" href="./guide/"><span><b>動作指南</b><small>器材設定、發力感與常見錯誤</small></span><em aria-hidden="true">→</em></a></div>
+      <div className="tool-meta"><p>181 cm · 76 kg　｜　腿 → 推 → 有氧 → 拉　｜　更新：2026/08/28</p><div className="tool-links"><a className="guide-link" href="./guide/"><span><b>動作指南</b><small>器材設定、發力感與常見錯誤</small></span><em aria-hidden="true">→</em></a><a className="guide-link nutrition-link" href="./nutrition/"><span><b>營養計算</b><small>每日熱量與三大營養素</small></span><em aria-hidden="true">→</em></a></div></div>
     </header>
     <TrainingCalendar />
     <section className="section compact-rules">
