@@ -29,12 +29,12 @@ const goals:Record<Goal,{label:string;detail:string;factor:number;protein:number
   gain:{label:'精實增肌',detail:'維持熱量 ＋7.5%',factor:1.075,protein:1.8},
 };
 const foods:FoodItem[]=[
-  {id:'grain',label:'全穀雜糧類',short:'穀',group:'carb',unit:'份',servingSize:1,kcal:70,protein:2,fat:0,carbs:15,step:1,chartStep:1,color:'lime',equivalence:'約白飯 1/4 碗'},
-  {id:'protein',label:'豆魚蛋肉類（低脂）',short:'蛋白',group:'protein',unit:'份',servingSize:1,kcal:55,protein:7,fat:3,carbs:0,step:1,chartStep:1,color:'orange',equivalence:'蛋、雞胸、豆腐、魚肉皆可替換'},
-  {id:'dairy',label:'乳品類',short:'乳',group:'support',unit:'份',servingSize:1,kcal:150,protein:8,fat:8,carbs:12,step:1,chartStep:1,color:'yellow',equivalence:'約牛奶 240 ml'},
-  {id:'vegetable',label:'蔬菜類',short:'菜',group:'support',unit:'份',servingSize:1,kcal:25,protein:1,fat:0,carbs:5,step:1,chartStep:1,color:'green',equivalence:'生重約 100 g'},
-  {id:'fruit',label:'水果類',short:'果',group:'carb',unit:'份',servingSize:1,kcal:60,protein:0,fat:0,carbs:15,step:1,chartStep:1,color:'blue',equivalence:'約香蕉半根或蘋果 1 顆'},
-  {id:'fat',label:'油脂與堅果種子類',short:'油',group:'support',unit:'份',servingSize:1,kcal:45,protein:0,fat:5,carbs:0,step:1,chartStep:1,color:'violet',equivalence:'約食用油 1 茶匙'},
+  {id:'grain',label:'全穀雜糧類',short:'穀',group:'carb',unit:'份',servingSize:1,kcal:70,protein:2,fat:0,carbs:15,step:1,chartStep:1,color:'lime',equivalence:'一份約白飯 1/4 碗（約 40 g）'},
+  {id:'protein',label:'豆魚蛋肉類（低脂）',short:'蛋白',group:'protein',unit:'份',servingSize:1,kcal:55,protein:7,fat:3,carbs:0,step:1,chartStep:1,color:'orange',equivalence:'一份約蛋 1 顆（可食約 55 g）／雞胸肉 35 g／豆腐 80 g／魚肉 35 g／無糖豆漿 190 ml'},
+  {id:'dairy',label:'乳品類',short:'乳',group:'support',unit:'份',servingSize:1,kcal:150,protein:8,fat:8,carbs:12,step:1,chartStep:1,color:'yellow',equivalence:'一份約鮮奶 240 ml'},
+  {id:'vegetable',label:'蔬菜類',short:'菜',group:'support',unit:'份',servingSize:1,kcal:25,protein:1,fat:0,carbs:5,step:1,chartStep:1,color:'green',equivalence:'一份約蔬菜生重 100 g'},
+  {id:'fruit',label:'水果類',short:'果',group:'carb',unit:'份',servingSize:1,kcal:60,protein:0,fat:0,carbs:15,step:1,chartStep:1,color:'blue',equivalence:'一份約香蕉半根／蘋果 1 顆'},
+  {id:'fat',label:'油脂與堅果種子類',short:'油',group:'support',unit:'份',servingSize:1,kcal:45,protein:0,fat:5,carbs:0,step:1,chartStep:1,color:'violet',equivalence:'一份約食用油 1 茶匙／堅果 1 茶匙'},
 ];
 const foodById=foods.reduce((map,item)=>{map[item.id]=item;return map},{} as Record<FoodId,FoodItem>);
 const defaultFoodEnabled:FoodEnabled={grain:true,protein:true,dairy:true,vegetable:true,fruit:true,fat:true};
