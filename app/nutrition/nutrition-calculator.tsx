@@ -39,7 +39,6 @@ function calculate(form:FormState):Result{
 export default function NutritionCalculator(){
   const [form,setForm]=useState<FormState>(initial);
   const [remember,setRemember]=useState(false);
-  const [eligible,setEligible]=useState(false);
   const [result,setResult]=useState<Result|null>(null);
   const [error,setError]=useState('');
   useEffect(()=>{try{const saved=localStorage.getItem(STORAGE_KEY);if(saved){setForm({...initial,...JSON.parse(saved)});setRemember(true)}}catch{}},[]);
@@ -50,7 +49,6 @@ export default function NutritionCalculator(){
     if(height<120||height>230){setError('身高請輸入 120–230 cm。');return}
     if(weight<35||weight>250){setError('體重請輸入 35–250 kg。');return}
     if(age<18||age>90){setError('此工具僅供 18–90 歲成人估算。');return}
-    if(!eligible){setError('請先確認你符合一般成人估算的適用條件。');return}
     setResult(calculate(form));setError('');try{if(shouldRemember)localStorage.setItem(STORAGE_KEY,JSON.stringify(form));else localStorage.removeItem(STORAGE_KEY)}catch{}
   }
   function clearSaved(){try{localStorage.removeItem(STORAGE_KEY)}catch{}setRemember(false)}
@@ -67,7 +65,6 @@ export default function NutritionCalculator(){
       <fieldset><legend>生理性別 <small>僅用於公式係數</small></legend><div className="choice-grid two">{([['male','男性'],['female','女性']] as const).map(([value,label])=><label className={form.sex===value?'active':''} key={value}><input type="radio" name="sex" checked={form.sex===value} onChange={()=>update('sex',value)}/><b>{label}</b></label>)}</div></fieldset>
       <fieldset><legend>活動量</legend><div className="choice-grid">{(Object.keys(activities) as Activity[]).map(value=><label className={form.activity===value?'active':''} key={value}><input type="radio" name="activity" checked={form.activity===value} onChange={()=>update('activity',value)}/><b>{activities[value].label}</b><small>{activities[value].detail}</small></label>)}</div></fieldset>
       <fieldset><legend>目前目標</legend><div className="choice-grid three">{(Object.keys(goals) as Goal[]).map(value=><label className={form.goal===value?'active':''} key={value}><input type="radio" name="goal" checked={form.goal===value} onChange={()=>update('goal',value)}/><b>{goals[value].label}</b><small>{goals[value].detail}</small></label>)}</div></fieldset>
-      <div className="safety-box"><b>適用條件</b><p>不適用於未成年人、孕期／哺乳期，或有腎臟疾病、飲食失調及其他需要醫療營養照護者。</p><label><input type="checkbox" checked={eligible} onChange={e=>setEligible(e.target.checked)}/><span>我已滿 18 歲，且沒有上述情況</span></label></div>
       <div className="save-row"><label><input name="remember" type="checkbox" checked={remember} onChange={e=>toggleRemember(e.target.checked)}/><span>記住我的資料（只存在這台裝置）</span></label><button type="button" onClick={clearSaved}>清除已記住資料</button></div>
       {error&&<p className="form-error" role="alert">{error}</p>}<button className="calculate-button" type="submit">計算每日需求 <span>→</span></button>
     </form>
