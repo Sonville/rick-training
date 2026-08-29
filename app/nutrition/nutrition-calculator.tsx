@@ -70,8 +70,8 @@ function suggestedFoodAmounts(result:Result,enabled:FoodEnabled=defaultFoodEnabl
 }
 function foodNutrition(item:FoodItem,amount:number){const factor=amount/item.servingSize;return {kcal:item.kcal*factor,protein:item.protein*factor,fat:item.fat*factor,carbs:item.carbs*factor};}
 function foodTotals(amounts:FoodAmounts,enabled:FoodEnabled){
-  const total=foods.reduce((sum,item)=>{if(!enabled[item.id])return sum;const value=foodNutrition(item,amounts[item.id]);return {kcal:sum.kcal+value.kcal,protein:sum.protein+value.protein,fat:sum.fat+value.fat,carbs:sum.carbs+value.carbs}},{kcal:0,protein:0,fat:0,carbs:0});
-  return {kcal:Math.round(total.kcal),protein:Math.round(total.protein),fat:Math.round(total.fat),carbs:Math.round(total.carbs)};
+  const total=foods.reduce((sum,item)=>{if(!enabled[item.id])return sum;const value=foodNutrition(item,amounts[item.id]);return {protein:sum.protein+value.protein,fat:sum.fat+value.fat,carbs:sum.carbs+value.carbs}},{protein:0,fat:0,carbs:0});
+  return {kcal:Math.round(total.protein*4+total.carbs*4+total.fat*9),protein:Math.round(total.protein),fat:Math.round(total.fat),carbs:Math.round(total.carbs)};
 }
 function foodAmountLabel(item:FoodItem,amount:number){const value=Number.isInteger(amount)?String(amount):amount.toFixed(1).replace(/\.0$/,'');return `${value} ${item.unit}`;}
 function foodDelta(value:number,target:number){const delta=value-target;return `${delta>0?'+':''}${delta} g`;}
