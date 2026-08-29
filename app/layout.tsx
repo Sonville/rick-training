@@ -9,6 +9,7 @@ import './meta.css';
 import './editor.css';
 import './nutrition.css';
 import './navigation.css';
+import './neutral-headings.css';
 const title='Rick 的四日訓練地圖';
 const description='目前健身菜單與改善建議的視覺化四日訓練計畫。';
 export const metadata:Metadata={
