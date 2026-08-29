@@ -8,14 +8,14 @@ type Activity='sedentary'|'light'|'moderate'|'high';
 type Goal='cut'|'maintain'|'gain';
 type FormState={height:string;weight:string;age:string;sex:Sex;activity:Activity;goal:Goal};
 type Result={bmr:number;maintenance:number;low:number;high:number;target:number;protein:number;fat:number;carbs:number;macroCalories:number};
-type FoodId='rice'|'noodles'|'egg'|'soy'|'fish'|'meat';
-type FoodGroup='carb'|'protein';
-type FoodItem={id:FoodId;label:string;short:string;group:FoodGroup;unit:'碗'|'顆'|'g';servingSize:number;kcal:number;protein:number;fat:number;carbs:number;step:number;chartStep:number;color:string;image?:string};
+type FoodId='grain'|'protein'|'dairy'|'vegetable'|'fruit'|'fat';
+type FoodGroup='carb'|'protein'|'support';
+type FoodItem={id:FoodId;label:string;short:string;group:FoodGroup;unit:'份';servingSize:number;kcal:number;protein:number;fat:number;carbs:number;step:number;chartStep:number;color:string;equivalence:string;image?:string};
 type FoodAmounts=Record<FoodId,number>;
 type FoodEnabled=Record<FoodId,boolean>;
 
 const STORAGE_KEY='rick-nutrition-profile';
-const FOOD_STORAGE_KEY='rick-nutrition-food-plan';
+const FOOD_STORAGE_KEY='rick-nutrition-exchanges-v2';
 const initial:FormState={height:'',weight:'',age:'',sex:'male',activity:'moderate',goal:'gain'};
 const activities:Record<Activity,{label:string;detail:string;factor:number}>={
   sedentary:{label:'久坐',detail:'主要坐著，幾乎沒有規律運動',factor:1.2},
@@ -29,16 +29,16 @@ const goals:Record<Goal,{label:string;detail:string;factor:number;protein:number
   gain:{label:'精實增肌',detail:'維持熱量 ＋7.5%',factor:1.075,protein:1.8},
 };
 const foods:FoodItem[]=[
-  {id:'rice',label:'白飯',short:'飯',group:'carb',unit:'碗',servingSize:1,kcal:195,protein:4,fat:.5,carbs:42,step:.5,chartStep:.5,color:'lime'},
-  {id:'noodles',label:'麵',short:'麵',group:'carb',unit:'碗',servingSize:1,kcal:220,protein:8,fat:1.5,carbs:42,step:.5,chartStep:.5,color:'orange'},
-  {id:'egg',label:'蛋',short:'蛋',group:'protein',unit:'顆',servingSize:1,kcal:72,protein:6.3,fat:4.8,carbs:.4,step:1,chartStep:1,color:'yellow'},
-  {id:'soy',label:'豆／豆腐',short:'豆',group:'protein',unit:'g',servingSize:100,kcal:85,protein:9,fat:5,carbs:2,step:10,chartStep:50,color:'green'},
-  {id:'fish',label:'魚',short:'魚',group:'protein',unit:'g',servingSize:100,kcal:130,protein:26,fat:3,carbs:0,step:10,chartStep:50,color:'blue'},
-  {id:'meat',label:'瘦肉',short:'肉',group:'protein',unit:'g',servingSize:100,kcal:190,protein:26,fat:9,carbs:0,step:10,chartStep:50,color:'violet'},
+  {id:'grain',label:'全穀雜糧類',short:'穀',group:'carb',unit:'份',servingSize:1,kcal:70,protein:2,fat:0,carbs:15,step:1,chartStep:1,color:'lime',equivalence:'約白飯 1/4 碗'},
+  {id:'protein',label:'豆魚蛋肉類（低脂）',short:'蛋白',group:'protein',unit:'份',servingSize:1,kcal:55,protein:7,fat:3,carbs:0,step:1,chartStep:1,color:'orange',equivalence:'蛋、雞胸、豆腐、魚肉皆可替換'},
+  {id:'dairy',label:'乳品類',short:'乳',group:'support',unit:'份',servingSize:1,kcal:150,protein:8,fat:8,carbs:12,step:1,chartStep:1,color:'yellow',equivalence:'約牛奶 240 ml'},
+  {id:'vegetable',label:'蔬菜類',short:'菜',group:'support',unit:'份',servingSize:1,kcal:25,protein:1,fat:0,carbs:5,step:1,chartStep:1,color:'green',equivalence:'生重約 100 g'},
+  {id:'fruit',label:'水果類',short:'果',group:'carb',unit:'份',servingSize:1,kcal:60,protein:0,fat:0,carbs:15,step:1,chartStep:1,color:'blue',equivalence:'約香蕉半根或蘋果 1 顆'},
+  {id:'fat',label:'油脂與堅果種子類',short:'油',group:'support',unit:'份',servingSize:1,kcal:45,protein:0,fat:5,carbs:0,step:1,chartStep:1,color:'violet',equivalence:'約食用油 1 茶匙'},
 ];
 const foodById=foods.reduce((map,item)=>{map[item.id]=item;return map},{} as Record<FoodId,FoodItem>);
-const defaultFoodEnabled:FoodEnabled={rice:true,noodles:true,egg:true,soy:true,fish:true,meat:true};
-const emptyFoodAmounts:FoodAmounts={rice:0,noodles:0,egg:0,soy:0,fish:0,meat:0};
+const defaultFoodEnabled:FoodEnabled={grain:true,protein:true,dairy:true,vegetable:true,fruit:true,fat:true};
+const emptyFoodAmounts:FoodAmounts={grain:0,protein:0,dairy:0,vegetable:0,fruit:0,fat:0};
 const round10=(n:number)=>Math.round(n/10)*10;
 const round5=(n:number)=>Math.round(n/5)*5;
 const roundToStep=(n:number,step:number)=>Math.max(0,Math.round(n/step)*step);
@@ -57,16 +57,15 @@ function calculate(form:FormState):Result{
 function foodSignature(form:FormState){return [form.height,form.weight,form.age,form.sex,form.activity,form.goal].join('|');}
 function suggestedFoodAmounts(result:Result,enabled:FoodEnabled=defaultFoodEnabled):FoodAmounts{
   const amounts={...emptyFoodAmounts};
-  const carbWeights:Record<FoodId,number>={rice:.7,noodles:.3,egg:0,soy:0,fish:0,meat:0};
-  const carbItems=foods.filter(item=>item.group==='carb'&&enabled[item.id]);
-  const carbWeightTotal=carbItems.reduce((sum,item)=>sum+carbWeights[item.id],0);
-  carbItems.forEach(item=>{
-    const share=carbWeightTotal?carbWeights[item.id]/carbWeightTotal:0;
-    amounts[item.id]=roundToStep(result.carbs*share/item.carbs*item.servingSize,item.step);
-  });
-  const proteinItems=foods.filter(item=>item.group==='protein'&&enabled[item.id]);
-  const proteinShare=proteinItems.length?result.protein/proteinItems.length:0;
-  proteinItems.forEach(item=>{amounts[item.id]=roundToStep(proteinShare/item.protein*item.servingSize,item.step)});
+  if(enabled.vegetable)amounts.vegetable=4;
+  if(enabled.fruit)amounts.fruit=2;
+  if(enabled.dairy)amounts.dairy=1;
+  const fixed=foodTotals(amounts,enabled);
+  if(enabled.grain){const grainCarbs=Math.max(0,result.carbs-fixed.carbs);amounts.grain=roundToStep(grainCarbs/foodById.grain.carbs,foodById.grain.step)}
+  const afterGrain=foodTotals(amounts,enabled);
+  if(enabled.protein){const proteinNeeded=Math.max(0,result.protein-afterGrain.protein);amounts.protein=roundToStep(proteinNeeded/foodById.protein.protein,foodById.protein.step)}
+  const afterProtein=foodTotals(amounts,enabled);
+  if(enabled.fat){const fatNeeded=Math.max(0,result.fat-afterProtein.fat);amounts.fat=roundToStep(fatNeeded/foodById.fat.fat,foodById.fat.step)}
   return amounts;
 }
 function foodNutrition(item:FoodItem,amount:number){const factor=amount/item.servingSize;return {kcal:item.kcal*factor,protein:item.protein*factor,fat:item.fat*factor,carbs:item.carbs*factor};}
@@ -102,17 +101,17 @@ function FoodPlan({result,form,amounts,enabled,onChange,onToggle,onRedistribute,
   const totals=foodTotals(amounts,enabled);
   const metrics=[['熱量',totals.kcal,result.target,'kcal'],['蛋白質',totals.protein,result.protein,'g'],['脂肪',totals.fat,result.fat,'g'],['碳水',totals.carbs,result.carbs,'g']] as const;
   return <section className="food-plan" aria-live="polite">
-    <div className="food-plan-heading"><div><span>03</span><h2>每日食物份量</h2><p>以熟重估算；直接調整每一項，查看今天的食物總量。</p></div><div className="food-plan-actions"><button type="button" onClick={onRedistribute}>重新分配</button><button type="button" onClick={onReset}>恢復建議</button></div></div>
+    <div className="food-plan-heading"><div><span>03</span><h2>每日食物份量</h2><p>依六大類食物代換估算；每一格代表 1 份，可直接調整。</p></div><div className="food-plan-actions"><button type="button" onClick={onRedistribute}>重新分配</button><button type="button" onClick={onReset}>恢復建議</button></div></div>
     <div className="food-total-grid">{metrics.map(([label,value,target,unit])=><div key={label}><span>{label}</span><strong>{value.toLocaleString()} <i>{unit}</i></strong><small className={foodDeltaClass(value,target)}>{label==='熱量'?`${value-target>0?'+':''}${value-target} kcal`:`${foodDelta(value,target)}`}</small></div>)}</div>
-    <div className="food-chart">{foods.map(item=>{const amount=enabled[item.id]?amounts[item.id]:0;const segments=foodStackSegments(item,amount);const nutrition=foodNutrition(item,amount);return <article className={`food-column ${item.group} ${enabled[item.id]?'':'disabled'}`} key={item.id}>
+    <div className="food-chart">{foods.map(item=>{const amount=enabled[item.id]?amounts[item.id]:0;const segments=foodStackSegments(item,amount);const segmentHeight=segments.length?Math.max(5,Math.min(28,Math.floor(150/segments.length))):0;const nutrition=foodNutrition(item,amount);return <article className={`food-column ${item.group} ${item.color} ${enabled[item.id]?'':'disabled'}`} key={item.id}>
       <div className="food-image-slot" aria-hidden="true">{item.image?<img src={item.image} alt=""/>:<span>{item.short}</span>}</div>
-      <div className="food-stack" aria-label={`${item.label} ${foodAmountLabel(item,amount)}`}>{segments.length?segments.map(segment=><span key={segment.key} style={{height:`${Math.max(11,Math.round(segment.ratio*28))}px`}}/>):<i>0</i>}</div>
-      <strong className="food-column-total">{foodAmountLabel(item,amount)}</strong><b className="food-column-label">{item.label}</b>
+      <div className="food-stack" aria-label={`${item.label} ${foodAmountLabel(item,amount)}`}>{segments.length?segments.map(segment=><span key={segment.key} style={{height:`${Math.max(3,Math.round(segment.ratio*segmentHeight))}px`}}/>):<i>0</i>}</div>
+      <strong className="food-column-total">{foodAmountLabel(item,amount)}</strong><b className="food-column-label">{item.label}</b><small className="food-equivalence">{item.equivalence}</small>
       <label className="food-toggle"><input type="checkbox" checked={enabled[item.id]} onChange={event=>onToggle(item.id,event.target.checked)}/><span>計入</span></label>
       <div className="food-stepper"><button type="button" aria-label={`${item.label} 減少`} disabled={!enabled[item.id]||amount<=0} onClick={()=>onChange(item.id,-item.step)}>−</button><span>每次 {item.step} {item.unit}</span><button type="button" aria-label={`${item.label} 增加`} disabled={!enabled[item.id]} onClick={()=>onChange(item.id,item.step)}>＋</button></div>
       <div className="food-nutrients"><span>{Math.round(nutrition.kcal)} kcal</span><span>P {Math.round(nutrition.protein)}g</span><span>F {Math.round(nutrition.fat)}g</span><span>C {Math.round(nutrition.carbs)}g</span></div>
     </article>})}</div>
-    <div className="food-plan-note">目前組合：{form.goal==='cut'?'減脂':form.goal==='maintain'?'維持':'精實增肌'}目標 · 份量只存在這台裝置</div>
+    <div className="food-plan-note">六大類代換 · {form.goal==='cut'?'減脂':form.goal==='maintain'?'維持':'精實增肌'}目標 · 份量只存在這台裝置</div>
   </section>;
 }
 
