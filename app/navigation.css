@@ -1,0 +1,4 @@
+.site-nav{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-top:0;background:var(--line);gap:1px}.site-nav a{display:flex;min-height:48px;align-items:center;justify-content:center;padding:0 18px;background:#171814;color:#8f9088;font:600 12px var(--font-oswald);letter-spacing:.08em;transition:background .15s,color .15s}.site-nav a:hover{background:#20211d;color:#f3f2eb}.site-nav a.active{background:var(--acid);color:#11120f}
+.guide-page>.site-nav,.nutrition-page>.site-nav{margin-left:0;margin-right:0}
+@media(max-width:900px){.site-nav{margin:0 24px}}
+@media(max-width:600px){.site-nav{margin:0 16px}.site-nav a{min-height:44px;padding:0 7px;font-size:11px;letter-spacing:.03em}}
