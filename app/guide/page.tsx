@@ -33,7 +33,7 @@ const groups:{id:string;label:string;color:string;moves:Move[]}[]=[
 ];
 
 export default function Guide(){return <main className="guide-page">
-  <header className="guide-header"><div><span>EXERCISE GUIDE</span><h1>動作指南</h1></div></header>
+  <header className="guide-header"><div><h1>動作指南</h1></div></header>
   <SiteNav current="guide" />
   <nav className="guide-tabs">{groups.map(g=><a className={g.color} href={`#${g.id}`} key={g.id}>{g.label}<small>{g.moves.length} 個動作</small></a>)}</nav>
   {groups.map(g=><section className={`guide-group ${g.color}`} id={g.id} key={g.id}><div className="group-title"><span>{g.label}</span><p>{g.moves.length} 個動作</p></div><div className="move-grid">{g.moves.map((m,i)=><details className="move-card" key={m.name} open={i===0}><summary><i>{String(i+1).padStart(2,'0')}</i><div><b>{m.name}</b><span>{m.target}</span></div><em>＋</em></summary><div className="move-detail"><dl><div><dt>器材設定</dt><dd>{m.setup}</dd></div><div><dt>怎麼做</dt><dd>{m.do}</dd></div><div><dt>應該感覺</dt><dd>{m.feel}</dd></div><div><dt>避免</dt><dd>{m.avoid}</dd></div></dl></div></details>)}</div></section>)}

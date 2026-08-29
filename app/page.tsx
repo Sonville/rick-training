@@ -4,7 +4,7 @@ import SiteNav from './site-nav';
 export default function Home(){
   return <main className="tool-page">
     <header className="tool-header">
-      <div><span>RICK · TRAINING LOG</span><h1>訓練計畫</h1></div>
+      <div><h1>訓練計畫</h1></div>
     </header>
     <SiteNav current="schedule" />
     <TrainingCalendar />
