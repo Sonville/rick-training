@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-type Exercise = { name:string; sets:string; base:number; step:number; every:number; unit?:string; note?:string };
+type BicepsChoice = 'dumbbell'|'preacher';
+type Exercise = { name:string; sets:string; base:number; step:number; every:number; unit?:string; note?:string; choiceGroup?:'day2-biceps'; choiceValue?:BicepsChoice };
 type DayKey = 'day1'|'day2'|'day3'|'day4'|'rest';
 type Anchor={dateIndex:number;exposure:number;value:number};
 type Overrides=Record<string,Anchor[]>;
@@ -22,6 +23,8 @@ const plans:Record<DayKey,{label:string;short:string;color:string;exercises:Exer
     {name:'器械臥推',sets:'3 × 8–12',base:40,step:2.5,every:2},
     {name:'蝴蝶機夾胸',sets:'3 × 10–15',base:25,step:2.5,every:3},
     {name:'坐姿二頭彎舉機',sets:'3 × 8–15',base:15,step:2.5,every:3},
+    {name:'啞鈴彎舉',sets:'3 × 8–12',base:7,step:1,every:3,unit:'kg／手',choiceGroup:'day2-biceps',choiceValue:'dumbbell',note:'身體不後仰；每一下都控制下放，最後一組仍保留約1–2下。'},
+    {name:'牧師椅彎舉',sets:'3 × 8–12',base:10,step:2.5,every:3,unit:'kg',choiceGroup:'day2-biceps',choiceValue:'preacher',note:'上臂貼墊；底端接近伸直但不彈、不鎖死，重量保持可控制。'},
     {name:'過頭三頭伸展',sets:'3 × 10–15',base:15,step:2.5,every:3},
     {name:'滑輪下壓',sets:'2 × 10–15',base:25,step:2.5,every:3},
     {name:'BOSU 舉腿',sets:'3 × 8–15',base:0,step:0,every:9,unit:'自體重量'},
@@ -55,6 +58,8 @@ const cues:Record<string,string> = {
   '器械臥推':'胸口抬起、背部貼穩；推到接近伸直但不鎖肘。',
   '蝴蝶機夾胸':'手肘角度固定，以胸帶動手臂；合攏時停1秒。',
   '坐姿二頭彎舉機':'上臂貼墊、手腕中立；避免肩膀前移借力。',
+  '啞鈴彎舉':'站穩或坐姿靠穩，掌心朝前；手肘貼近身體，手腕保持直，抬起與下放都不甩。',
+  '牧師椅彎舉':'調整座椅讓上臂完整貼墊、肘關節對準轉軸；固定上臂，彎舉到頂端後慢慢回程。',
   '過頭三頭伸展':'手肘朝前且固定；肋骨下壓，避免腰部代償。',
   '滑輪下壓':'手肘貼近身體；只動前臂，底端完整伸直。',
   'BOSU 舉腿':'先讓骨盆後傾再抬腿；腰部不要拱起。',
@@ -111,11 +116,13 @@ export default function TrainingCalendar(){
   const [overrides,setOverrides]=useState<Overrides>({});
   const [editing,setEditing]=useState(false);
   const [draft,setDraft]=useState<Record<string,string>>({});
+  const [bicepsChoice,setBicepsChoice]=useState<BicepsChoice>('dumbbell');
   const todayIndex=Math.max(0,calendarIndexForKey(todayKey||'2026-08-28'));
   const dates=useMemo(()=>Array.from({length:Math.max(84,todayIndex+84)},(_,i)=>({index:i,date:dateAt(i),type:dayType(i)})),[todayIndex]);
   const monthOptions=useMemo(()=>Array.from(new Set(dates.map(({date})=>`${date.getFullYear()}-${date.getMonth()}`))).map(value=>{const [year,month]=value.split('-').map(Number);return {year,month,label:`${month+1} 月`}}),[dates]);
   const [monthCursor,setMonthCursor]=useState(0);
   const item=dates[selected]; const plan=plans[item.type]; const exposure=exposureAt(selected,item.type);
+  const visibleExercises=useMemo(()=>plan.exercises.filter(ex=>!ex.choiceGroup||ex.choiceValue===bicepsChoice),[plan,bicepsChoice]);
   const visibleMonth=monthOptions[monthCursor];
   const monthCells=useMemo(()=>{
     const first=new Date(visibleMonth.year,visibleMonth.month,1,12);
@@ -132,6 +139,7 @@ export default function TrainingCalendar(){
     return()=>window.clearInterval(timer);
   },[]);
   useEffect(()=>{try{const saved=localStorage.getItem('rick-training-overrides');if(saved)setOverrides(JSON.parse(saved));}catch{}},[]);
+  useEffect(()=>{try{const saved=localStorage.getItem('rick-training-biceps-choice');if(saved==='dumbbell'||saved==='preacher')setBicepsChoice(saved);}catch{}},[]);
   useEffect(()=>{
     if(!todayKey)return;
     const index=dates.findIndex(entry=>dateKey(entry.date)===todayKey);
@@ -143,10 +151,11 @@ export default function TrainingCalendar(){
   },[todayKey,dates,monthOptions]);
   function choose(index:number){setSelected(index);setMonthCursor(Math.max(0,monthOptions.findIndex(month=>month.year===dates[index].date.getFullYear()&&month.month===dates[index].date.getMonth())));setEditing(false);setDraft({});}
   function chooseMonth(index:number){setMonthCursor(index);const firstIndex=dates.findIndex(entry=>entry.date.getFullYear()===monthOptions[index].year&&entry.date.getMonth()===monthOptions[index].month);if(firstIndex>=0&&dateKey(dates[selected].date).slice(0,7)!==`${monthOptions[index].year}-${String(monthOptions[index].month+1).padStart(2,'0')}`)choose(firstIndex);}
-  function beginEdit(){const next:Record<string,string>={};for(const ex of plan.exercises)if(!['自體重量','體重'].includes(ex.unit||''))next[ex.name]=String(numericProjected(ex,exposure,selected,overrides));setDraft(next);setEditing(true);}
+  function chooseBiceps(choice:BicepsChoice){setBicepsChoice(choice);setEditing(false);setDraft({});try{localStorage.setItem('rick-training-biceps-choice',choice);}catch{}}
+  function beginEdit(){const next:Record<string,string>={};for(const ex of visibleExercises)if(!['自體重量','體重'].includes(ex.unit||''))next[ex.name]=String(numericProjected(ex,exposure,selected,overrides));setDraft(next);setEditing(true);}
   function saveEdit(){
     const next:Overrides={...overrides};
-    for(const ex of plan.exercises){const value=Number(draft[ex.name]);if(!Number.isFinite(value)||value<0)continue;const existing=(next[ex.name]||[]).filter(a=>a.dateIndex!==selected);next[ex.name]=[...existing,{dateIndex:selected,exposure,value}].sort((a,b)=>a.dateIndex-b.dateIndex);}
+    for(const ex of visibleExercises){const value=Number(draft[ex.name]);if(!Number.isFinite(value)||value<0)continue;const existing=(next[ex.name]||[]).filter(a=>a.dateIndex!==selected);next[ex.name]=[...existing,{dateIndex:selected,exposure,value}].sort((a,b)=>a.dateIndex-b.dateIndex);}
     setOverrides(next);localStorage.setItem('rick-training-overrides',JSON.stringify(next));setEditing(false);
   }
   function clearEdits(){setOverrides({});localStorage.removeItem('rick-training-overrides');setEditing(false);setDraft({});}
@@ -155,8 +164,9 @@ export default function TrainingCalendar(){
       <div className="calendar-scroll"><div className="calendar-month-nav"><div><span>月曆</span><strong>{visibleMonth.year} 年 {visibleMonth.month+1} 月</strong></div><div className="month-tabs" aria-label="選擇月份">{monthOptions.map((month,index)=><button key={`${month.year}-${month.month}`} className={monthCursor===index?'active':''} onClick={()=>chooseMonth(index)}><b>{month.label}</b><small>{month.year}</small></button>)}</div></div><div className="month-weekday-row">{['日','一','二','三','四','五','六'].map(x=><span key={x}>週{x}</span>)}</div><div className="month-grid">{monthCells.map(({date,dateIndex},cellIndex)=>{if(dateIndex===null||dateIndex<0||date===null)return <span key={cellIndex} className="month-cell range-off"><small>{date?.getDate()||''}</small></span>;const type=dates[dateIndex].type;return <button key={cellIndex} onClick={()=>choose(dateIndex)} className={`${plans[type].color} ${selected===dateIndex?'selected':''} ${dateIndex===todayIndex?'is-today':''}`} aria-pressed={selected===dateIndex} aria-label={`${dateText(date)} ${plans[type].label}`}><small>{date.getDate()}</small><b>{plans[type].short}</b><i>{dateIndex===todayIndex?'今天':`W${Math.floor(dateIndex/7)+1}`}</i></button>})}</div></div>
       <article className={`daily-detail ${plan.color} ${selected===todayIndex?'is-today':''}`}>
         <div className="detail-top"><div><span>{dateText(item.date)} · 星期{['日','一','二','三','四','五','六'][item.date.getDay()]}</span><h3>{plan.label}</h3><p>{item.type==='rest'?'今天不安排重量訓練，散步 20–30 分鐘或完全休息。':`這是本循環第 ${exposure+1} 次 ${plan.short} 日。`}</p></div><div className="day-controls"><button disabled={selected===0} onClick={()=>choose(Math.max(0,selected-1))}>←</button><button disabled={selected===83} onClick={()=>choose(Math.min(83,selected+1))}>→</button></div></div>
+        {item.type==='day2'&&<div className="biceps-choice"><div><b>新增二頭訓練｜二選一</b><span>啞鈴彎舉與牧師椅彎舉選一個即可；選擇會保存在這台裝置，既有重量設定不會清除。</span></div><div className="biceps-choice-buttons" role="group" aria-label="選擇二頭訓練"><button className={bicepsChoice==='dumbbell'?'active':''} aria-pressed={bicepsChoice==='dumbbell'} onClick={()=>chooseBiceps('dumbbell')}>啞鈴彎舉<small>3 × 8–12</small></button><button className={bicepsChoice==='preacher'?'active':''} aria-pressed={bicepsChoice==='preacher'} onClick={()=>chooseBiceps('preacher')}>牧師椅彎舉<small>3 × 8–12</small></button></div></div>}
         {item.type!=='rest'&&<div className="editor-bar">{editing?<><button className="save" onClick={saveEdit}>儲存並套用未來</button><button onClick={()=>setEditing(false)}>取消</button></>:<button onClick={beginEdit}>編輯當日重量</button>}{Object.keys(overrides).length>0&&<button className="clear" onClick={clearEdits}>清除全部自訂</button>}<span>修改只影響這一天及之後；更早日期不變。</span></div>}
-        {item.type!=='rest'&&<div className="daily-exercises"><div className="daily-head"><span>動作</span><span>組數 × 次數</span><span>重量</span><span>強度</span></div>{plan.exercises.map((ex,i)=><div className="daily-row" key={ex.name}><b><i>{String(i+1).padStart(2,'0')}</i>{ex.name}</b><span>{ex.sets}</span>{editing&&draft[ex.name]!==undefined?<label className="weight-input"><input type="number" min="0" step="0.5" value={draft[ex.name]} onChange={e=>setDraft({...draft,[ex.name]:e.target.value})}/><i>{ex.unit||'kg'}</i></label>:<strong>{projected(ex,exposure,selected,overrides)}</strong>}<em>{effort(ex)}</em><small>{cues[ex.name]} {tempo(ex)}{warmup(ex)}{ex.note?` ${ex.note}`:''}</small></div>)}</div>}
+        {item.type!=='rest'&&<div className="daily-exercises"><div className="daily-head"><span>動作</span><span>組數 × 次數</span><span>重量</span><span>強度</span></div>{visibleExercises.map((ex,i)=><div className="daily-row" key={ex.name}><b><i>{String(i+1).padStart(2,'0')}</i>{ex.name}</b><span>{ex.sets}</span>{editing&&draft[ex.name]!==undefined?<label className="weight-input"><input type="number" min="0" step="0.5" value={draft[ex.name]} onChange={e=>setDraft({...draft,[ex.name]:e.target.value})}/><i>{ex.unit||'kg'}</i></label>:<strong>{projected(ex,exposure,selected,overrides)}</strong>}<em>{effort(ex)}</em><small>{cues[ex.name]} {tempo(ex)}{warmup(ex)}{ex.note?` ${ex.note}`:''}</small></div>)}</div>}
         <div className="load-gate"><b>紀錄與調整</b><p>每次記錄重量／組數／次數。連續兩次達到上限再加重；若2–3週沒有任何進步，先檢查睡眠、熱量盈餘與累積疲勞。</p></div>
       </article>
     </div>
